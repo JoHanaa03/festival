@@ -176,7 +176,7 @@ with st.sidebar:
 
     tab_sel = st.radio(
         "분석 탭 선택",
-        ["📊 전체 현황", "🔍 축제 상세", "📈 지속성 분석", "🤖 타입 분류기"],
+        ["📊 전체 현황", "🔍 축제 상세", "📈 지속성 분석", "🤖 타입 분류기", "💡 인사이트", "🗄️ 핵심 SQL"],
         label_visibility="collapsed",
     )
     st.divider()
@@ -732,6 +732,315 @@ elif tab_sel == "🤖 타입 분류기":
                 "경계선 케이스입니다. 추가 연도 데이터 확보 후 재분류 권장.",
                 icon="⚠️",
             )
+
+
+
+# ════════════════════════════════════════════════════════
+# TAB 5: 인사이트
+# ════════════════════════════════════════════════════════
+elif tab_sel == "💡 인사이트":
+    st.markdown("## 💡 핵심 인사이트")
+    st.caption("분석 전체를 관통하는 6개 발견 — 지역 활성화를 위한 축제 개최 전략 방향")
+
+    INSIGHTS = [
+        ("1", "방문자 유입이 소비를 만든다 — r = 0.84의 강한 상관",
+         "방문자 증폭률과 소비 증폭률의 상관계수는 **0.84**로 모든 지표 중 가장 높습니다. "
+         "SNS 화제성과 소비의 상관(0.55)보다 훨씬 높아, 온라인 마케팅보다 실제 방문 유도가 더 중요합니다. "
+         "'방문자 유입 → 소비'의 연결고리 설계가 핵심입니다.",
+         "방문·소비", "#534AB7"),
+        ("2", "외지인 비율 75% 이상이 분기점 — SNS 효과도 1.5배",
+         "외지인 비율 **75% 이상** 구간 축제의 SNS 증폭률은 155.8%로, "
+         "40% 미만(103.5%)의 1.5배입니다. 외지인이 자발적 콘텐츠 생산자가 되기 때문입니다. "
+         "외지인 유치 전략이 디지털 마케팅보다 선행되어야 합니다.",
+         "외지인·SNS", "#185FA5"),
+        ("3", "소비 유지율이 진짜 지역 경제 활성화의 지표다",
+         "Type B 축제의 소비 유지율은 **114.7%**로 축제 후에도 기준선을 웃돌았습니다. "
+         "반면 Type D는 **91%**로 오히려 줄었습니다. "
+         "방문자 수가 많아도 소비 유지율이 낮으면 소비 유출(leakage) 신호입니다.",
+         "소비 지속성", "#0F6E56"),
+        ("4", "SNS 장기 유지율 하락이 소비 급락을 예고 — r = 0.59",
+         "SNS 장기 유지율(6M)과 소비 유지율의 상관계수는 **0.59**입니다. "
+         "Type D의 SNS 장기율 71%, 소비 77%가 동반 하락합니다. "
+         "SNS 콘텐츠의 지속적 생산 지원이 장기 효과의 보조 수단이 됩니다.",
+         "SNS 지속성", "#0F6E56"),
+        ("5", "축제 기간 길이는 효과성과 통계적으로 무관하다",
+         "ANOVA 결과 소비(p=0.22), SNS(p=0.25) 모두 구간 간 차이가 유의하지 않습니다. "
+         "**'기간이 길수록 효과가 크다'는 명제는 데이터로 지지되지 않습니다.** "
+         "기간보다 외지인 유입 전략과 콘텐츠 특성이 효과성의 실질 결정 요인입니다.",
+         "축제 기간", "#BA7517"),
+        ("6", "27개 중 14개(52%)가 효과 미흡 — 평가 체계 전환 필요",
+         "현행 방문자 수 단일 평가로는 이 문제가 보이지 않습니다. "
+         "Type D는 SNS 기준선 미달 12/14개, 소비 유지율 평균 91%입니다. "
+         "**소비 유지율·외지인 비율을 공식 평가 지표에 포함하는 체계 전환이 필요합니다.**",
+         "정책 제언", "#993C1D"),
+    ]
+
+    for num, title, body, tag, color in INSIGHTS:
+        col_num, col_body = st.columns([1, 11])
+        with col_num:
+            st.markdown(
+                f'<div style="width:32px;height:32px;border-radius:50%;background:{color};'
+                f'color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;'
+                f'justify-content:center;margin-top:4px">{num}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_body:
+            st.markdown(
+                f'<span style="background:{color}18;color:{color};padding:2px 8px;'
+                f'border-radius:4px;font-size:11px;font-weight:500">{tag}</span>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(f"**{title}**")
+            st.markdown(body)
+        st.divider()
+
+    st.markdown("## 유형별 정책 전략 방향")
+    STRATEGIES = [
+        ("Type A — 전방위 우수형",   "#534AB7", "#EEEDFE", 1,  "86.9점",
+         "3개 차원 모두 압도적. 소비·SNS·방문자 기준선 대비 전부 110% 이상.",
+         ["성공 패턴 백서화 및 타 축제 벤치마킹 지원",
+          "축제 전후 연계 체험 프로그램 확대로 체류 기간 연장",
+          "브랜드 IP화 — 지역 상품·콘텐츠 라이선싱 연계",
+          "6개월 후 방문자 추적 인터뷰 정례화"]),
+        ("Type B — 경제·방문 균형형","#185FA5", "#E6F1FB", 7,  "55.0점",
+         "소비 유지율 114%, SNS 유지율 126%. 축제 후에도 사람·돈이 머문다.",
+         ["축제 직후 소규모 후속 이벤트로 단기 공백 해소",
+          "재방문 쿠폰·지역화폐 연계로 재방문 전환",
+          "지역 특산물 온라인 재구매 채널 연계",
+          "계절 체험 프로그램 다변화"]),
+        ("Type C — SNS 주도형",      "#0F6E56", "#E1F5EE", 5,  "54.1점",
+         "SNS 증폭 136%로 강하나 소비 유지율 104%. 화제성이 소비로 연결되지 않는 구조.",
+         ["당일치기 방문객 → 1박 이상 체류 전환 숙박 패키지",
+          "축제 후 3개월 SNS 콘텐츠 지속 생산 지원",
+          "지역 특산물 직거래 부스 및 온라인 사후 구매 연동",
+          "재방문 유인 쿠폰·지역화폐 연계"]),
+        ("Type D — 효과 미흡형",     "#993C1D", "#FAECE7", 14, "29.7점",
+         "SNS 기준선 미달 12/14개. 소비 유지율 91%. 일회성 이벤트 패턴.",
+         ["외지인 유치 전략 부재 점검 — 접근성·홍보 채널 분석",
+          "소비 유출 경로 진단 (외부 체인 비중 조사)",
+          "규모 축소 + 콘텐츠 특화로 비용 효율 개선",
+          "3년 이내 성과 미달 시 형식 전환 또는 통폐합 검토"]),
+    ]
+    cols_s = st.columns(2)
+    for idx, (label, color, bg, n, score, desc, items) in enumerate(STRATEGIES):
+        with cols_s[idx % 2]:
+            bullet_html = "".join(
+                [f'<div style="font-size:12px;color:#444;padding:2px 0">— {it}</div>' for it in items]
+            )
+            st.markdown(
+                f'<div style="background:{bg};border:0.5px solid {color}40;border-radius:10px;'
+                f'padding:16px 18px;margin-bottom:12px">'
+                f'<div style="font-size:10px;color:{color};font-weight:500;text-transform:uppercase;'
+                f'letter-spacing:.06em;margin-bottom:4px">{TYPE_SHORT[label]} · n={n} · 평균 {score}</div>'
+                f'<div style="font-size:14px;font-weight:700;color:{color};margin-bottom:6px">'
+                f'{label.split("—")[1].strip()}</div>'
+                f'<div style="font-size:11px;color:#555;margin-bottom:10px">{desc}</div>'
+                f'{bullet_html}</div>',
+                unsafe_allow_html=True,
+            )
+
+
+# ════════════════════════════════════════════════════════
+# TAB 6: 핵심 SQL
+# ════════════════════════════════════════════════════════
+elif tab_sel == "🗄️ 핵심 SQL":
+    st.markdown("## 🗄️ 핵심 SQL 쿼리")
+    st.caption("festival_raw.db 기반 · 분석에 사용된 핵심 SQL문 정리")
+
+    st.markdown(
+        '<div style="background:#F5F3EE;border:0.5px solid #E2DFD8;border-radius:8px;'
+        'padding:12px 16px;margin-bottom:20px"><b>공통 설계 원칙</b><br>'
+        '<span style="font-size:12px;color:#555;line-height:2">'
+        "① <b>BEFORE% 패턴 매칭</b> — LIKE 'BEFORE%'로 3M·2M·1M을 한 번에 묶어 기준선 산출<br>"
+        '② <b>NULLIF(x, 0)</b> — 0 나누기 방지, 데이터 없는 축제 점수 왜곡 차단<br>'
+        '③ <b>AVG not SUM</b> — 기간·규모가 다른 축제 간 비교 왜곡 방지'
+        '</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    SQL_SECTIONS = [
+        ("SQL 1 — SNS 언급량 구간 평균 및 증폭률",
+         "축제×연도별 BEFORE 기준선 대비 FESTIVAL 증폭률과 AFTER 유지율 산출",
+         """\
+WITH base AS (
+    SELECT
+        festival_name,
+        festival_year,
+        AVG(CASE WHEN period LIKE 'BEFORE%' THEN search_volume END) AS before_avg,
+        AVG(CASE WHEN period = 'FESTIVAL'   THEN search_volume END) AS festival_avg,
+        AVG(CASE WHEN period LIKE 'AFTER%'  THEN search_volume END) AS after_avg
+    FROM fact_sns
+    GROUP BY festival_name, festival_year
+)
+SELECT
+    festival_name,
+    festival_year,
+    ROUND(festival_avg / NULLIF(before_avg, 0) * 100, 1) AS buzz_lift_pct,
+    ROUND(after_avg    / NULLIF(before_avg, 0) * 100, 1) AS buzz_retention_pct
+FROM base
+ORDER BY buzz_lift_pct DESC;"""),
+        ("SQL 2 — 축제별 3개년 평균 SNS 증폭률 순위",
+         "연도 노이즈를 제거한 축제 단위 대표 SNS 지표",
+         """\
+WITH base AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN search_volume END) AS before_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN search_volume END) AS festival_avg,
+           AVG(CASE WHEN period LIKE 'AFTER%'  THEN search_volume END) AS after_avg
+    FROM fact_sns
+    GROUP BY festival_name, festival_year
+)
+SELECT
+    festival_name,
+    COUNT(festival_year)                                        AS years,
+    ROUND(AVG(festival_avg / NULLIF(before_avg, 0) * 100), 1) AS avg_buzz_lift_pct,
+    ROUND(AVG(after_avg    / NULLIF(before_avg, 0) * 100), 1) AS avg_buzz_retention_pct,
+    ROUND(AVG(festival_avg), 0)                                AS avg_festival_volume
+FROM base
+GROUP BY festival_name
+ORDER BY avg_buzz_lift_pct DESC;"""),
+        ("SQL 3 — 소비 증폭률 및 유지율 (3개년 평균)",
+         "축제 기간 소비 증폭과 사후 소비 유지율 — 경제적 효과의 핵심 지표",
+         """\
+WITH yearly AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN spending_million END) AS before_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN spending_million END) AS festival_avg,
+           AVG(CASE WHEN period LIKE 'AFTER%'  THEN spending_million END) AS after_avg
+    FROM fact_spending
+    GROUP BY festival_name, festival_year
+)
+SELECT
+    festival_name,
+    ROUND(AVG(festival_avg / NULLIF(before_avg, 0) * 100), 1) AS avg_spend_lift_pct,
+    ROUND(AVG(after_avg    / NULLIF(before_avg, 0) * 100), 1) AS avg_retention_rate,
+    ROUND(AVG(festival_avg - before_avg), 0)                   AS avg_incremental_spend
+FROM yearly
+GROUP BY festival_name
+ORDER BY avg_spend_lift_pct DESC;"""),
+        ("SQL 4 — 방문자 유입 지표 (외지인 비율·인구대비·증폭률)",
+         "외지인 비율, 인구 대비 방문자 규모, 방문자 증폭률 — 방문 차원 3개 지표",
+         """\
+WITH visitor_ts_base AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN 전체방문자수 END) AS before_visitor_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN 전체방문자수 END) AS festival_visitor
+    FROM fact_visitor_ts
+    GROUP BY festival_name, festival_year
+)
+SELECT
+    v.festival_name,
+    v.festival_year,
+    ROUND(CAST(v.외지인방문자수 AS FLOAT)
+          / NULLIF(v.전체방문자수, 0) * 100, 1)         AS outsider_ratio,
+    ROUND(CAST(v.전체방문자수 AS FLOAT)
+          / NULLIF(p.population, 0) * 100, 1)           AS visitor_per_pop_pct,
+    ROUND(vt.festival_visitor
+          / NULLIF(vt.before_visitor_avg, 0) * 100, 1)  AS visitor_lift_pct
+FROM fact_visitor v
+LEFT JOIN dim_population   p  ON v.sigungu = p.sigungu
+LEFT JOIN visitor_ts_base vt  ON v.festival_name = vt.festival_name
+                              AND v.festival_year  = vt.festival_year
+ORDER BY visitor_lift_pct DESC;"""),
+        ("SQL 5 — 3개 차원 통합 종합 점수 산출",
+         "SNS·소비·방문자 3개 차원 지표 통합 (Min-Max 정규화 및 가중합은 Python에서 처리)",
+         """\
+WITH sns_agg AS (
+    SELECT festival_name,
+           AVG(festival_avg / NULLIF(before_avg,0) * 100) AS avg_buzz_lift,
+           AVG(after_avg    / NULLIF(before_avg,0) * 100) AS avg_buzz_retention
+    FROM (
+        SELECT festival_name, festival_year,
+               AVG(CASE WHEN period LIKE 'BEFORE%' THEN search_volume END)  AS before_avg,
+               AVG(CASE WHEN period = 'FESTIVAL'   THEN search_volume END)  AS festival_avg,
+               AVG(CASE WHEN period LIKE 'AFTER%'  THEN search_volume END)  AS after_avg
+        FROM fact_sns GROUP BY festival_name, festival_year
+    ) GROUP BY festival_name
+),
+spend_agg AS (
+    SELECT festival_name,
+           AVG(festival_avg / NULLIF(before_avg,0) * 100) AS avg_spend_lift,
+           AVG(after_avg    / NULLIF(before_avg,0) * 100) AS avg_retention_rate
+    FROM (
+        SELECT festival_name, festival_year,
+               AVG(CASE WHEN period LIKE 'BEFORE%' THEN spending_million END) AS before_avg,
+               AVG(CASE WHEN period = 'FESTIVAL'   THEN spending_million END) AS festival_avg,
+               AVG(CASE WHEN period LIKE 'AFTER%'  THEN spending_million END) AS after_avg
+        FROM fact_spending GROUP BY festival_name, festival_year
+    ) GROUP BY festival_name
+)
+-- 가중치: 소비(0.45) · SNS(0.30) · 방문자(0.25)
+-- Min-Max 정규화 후 가중합 × 100 = 0~100점
+SELECT sp.festival_name,
+       sn.avg_buzz_lift,       -- w=0.20
+       sn.avg_buzz_retention,  -- w=0.10
+       sp.avg_spend_lift,      -- w=0.25 (핵심)
+       sp.avg_retention_rate   -- w=0.20 (핵심)
+FROM spend_agg sp
+JOIN sns_agg sn ON sp.festival_name = sn.festival_name;"""),
+        ("SQL 6 — 단기·장기 지속성 분리 (fact_retention_v2)",
+         "AFTER 1~3M = 단기 평균, AFTER_6M = 장기 — 소비·SNS·방문자 3개 차원 모두 적용",
+         """\
+CREATE TABLE fact_retention_v2 AS
+WITH spend_base AS (
+    SELECT festival_name, festival_year,
+        AVG(CASE WHEN period LIKE 'BEFORE%'                       THEN spending_million END) AS before_avg,
+        AVG(CASE WHEN period = 'FESTIVAL'                         THEN spending_million END) AS festival_avg,
+        AVG(CASE WHEN period IN ('AFTER_1M','AFTER_2M','AFTER_3M')THEN spending_million END) AS short_avg,
+        AVG(CASE WHEN period = 'AFTER_6M'                        THEN spending_million END) AS long_avg
+    FROM fact_spending GROUP BY festival_name, festival_year
+)
+-- sns_base, visit_base: 동일 구조 (컬럼명만 변경)
+SELECT
+    sp.festival_name, sp.festival_year,
+    ROUND(sp.festival_avg / NULLIF(sp.before_avg,0)*100, 1) AS sp_lift,
+    ROUND(sp.short_avg    / NULLIF(sp.before_avg,0)*100, 1) AS sp_short_rate,  -- 단기
+    ROUND(sp.long_avg     / NULLIF(sp.before_avg,0)*100, 1) AS sp_long_rate    -- 장기(6M)
+FROM spend_base sp;"""),
+        ("SQL 7 — 축제 기간 구간별 효과성 (festival_raw.db)",
+         "festival_days를 4개 구간으로 나눠 증폭률 비교. ANOVA p>0.05 — 기간보다 전략이 결정적",
+         """\
+WITH before_avg AS (
+    SELECT sp.festival_name, sp.festival_year,
+           AVG(sp.spending_million) AS spend_base,
+           AVG(sn.search_volume)    AS sns_base,
+           AVG(vt.전체방문자수)      AS visit_base
+    FROM fact_spending   sp
+    JOIN fact_sns        sn ON sp.festival_name=sn.festival_name
+                            AND sp.festival_year=sn.festival_year
+                            AND sp.period=sn.period
+    JOIN fact_visitor_ts vt ON sp.festival_name=vt.festival_name
+                            AND sp.festival_year=vt.festival_year
+                            AND sp.period=vt.period
+    WHERE sp.period LIKE 'BEFORE%'
+    GROUP BY sp.festival_name, sp.festival_year
+)
+-- festival_val: period='FESTIVAL' / after_avg: period IN ('AFTER_1M','AFTER_2M','AFTER_3M')
+SELECT
+    v.festival_name,
+    v.festival_days,
+    CASE
+        WHEN v.festival_days <= 4  THEN '① 단기 (1~4일)'
+        WHEN v.festival_days <= 9  THEN '② 중기 (5~9일)'
+        WHEN v.festival_days <= 15 THEN '③ 장기 (10~15일)'
+        ELSE                            '④ 초장기 (16일+)'
+    END AS days_group,
+    ROUND((fv.spend_fest - b.spend_base)/NULLIF(b.spend_base,0)*100, 1) AS spend_lift,
+    ROUND((fv.sns_fest   - b.sns_base)  /NULLIF(b.sns_base,0)*100,   1) AS sns_lift,
+    ROUND((fv.visit_fest - b.visit_base)/NULLIF(b.visit_base,0)*100, 1) AS visitor_lift
+FROM fact_visitor v
+JOIN before_avg  b   ON v.festival_name=b.festival_name AND v.festival_year=b.festival_year
+JOIN festival_val fv  ON v.festival_name=fv.festival_name AND v.festival_year=fv.festival_year
+JOIN after_avg   aa  ON v.festival_name=aa.festival_name AND v.festival_year=aa.festival_year
+ORDER BY v.festival_days;
+-- ANOVA: 소비 F=1.506 p=0.220 / SNS F=1.408 p=0.247 → 모두 비유의"""),
+    ]
+
+    for title, desc, sql in SQL_SECTIONS:
+        with st.expander(f"**{title}**", expanded=False):
+            st.caption(desc)
+            st.code(sql, language="sql")
+
 
 
 # ────────────────────────────────────────────────────────

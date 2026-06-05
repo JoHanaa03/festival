@@ -133,6 +133,13 @@ def build_classifier(score_df):
 # ────────────────────────────────────────────────────────
 # 2. 공통 유틸
 # ────────────────────────────────────────────────────────
+def hex_to_rgba(hex_color: str, alpha: float = 0.15) -> str:
+    """hex 색상을 rgba() 문자열로 변환 (plotly 호환)"""
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 def type_badge(label: str) -> str:
     colors = {
         "Type A — 전방위 우수형":   ("#EEEDFE", "#534AB7"),
@@ -472,7 +479,7 @@ elif tab_sel == "🔍 축제 상세":
             r=list(vals) + [vals.iloc[0]],
             theta=feat_labels + [feat_labels[0]],
             fill="toself" if dash == "solid" else "none",
-            fillcolor=color + "20" if dash == "solid" else "rgba(0,0,0,0)",
+            fillcolor=hex_to_rgba(color, 0.15) if dash == "solid" else "rgba(0,0,0,0)",
             name=name,
             line=dict(color=clr, width=2 if dash == "solid" else 1.5, dash=dash),
             opacity=0.9 if dash == "solid" else 0.7,

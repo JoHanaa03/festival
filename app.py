@@ -742,49 +742,51 @@ elif tab_sel == "💡 인사이트":
     st.markdown("## 💡 핵심 인사이트")
     st.caption("분석 전체를 관통하는 6개 발견 — 지역 활성화를 위한 축제 개최 전략 방향")
 
-    INSIGHTS = [
-        ("1", "방문자 유입이 소비를 만든다 — r = 0.84의 강한 상관",
-         "방문자 증폭률과 소비 증폭률의 상관계수는 **0.84**로 모든 지표 중 가장 높습니다. "
-         "SNS 화제성과 소비의 상관(0.55)보다 훨씬 높아, 온라인 마케팅보다 실제 방문 유도가 더 중요합니다. "
-         "'방문자 유입 → 소비'의 연결고리 설계가 핵심입니다.",
-         "방문·소비", "#534AB7"),
-        ("2", "외지인 비율 75% 이상이 분기점 — SNS 효과도 1.5배",
-         "외지인 비율 **75% 이상** 구간 축제의 SNS 증폭률은 155.8%로, "
-         "40% 미만(103.5%)의 1.5배입니다. 외지인이 자발적 콘텐츠 생산자가 되기 때문입니다. "
-         "외지인 유치 전략이 디지털 마케팅보다 선행되어야 합니다.",
-         "외지인·SNS", "#185FA5"),
-        ("3", "소비 유지율이 진짜 지역 경제 활성화의 지표다",
-         "Type B 축제의 소비 유지율은 **114.7%**로 축제 후에도 기준선을 웃돌았습니다. "
-         "반면 Type D는 **91%**로 오히려 줄었습니다. "
-         "방문자 수가 많아도 소비 유지율이 낮으면 소비 유출(leakage) 신호입니다.",
-         "소비 지속성", "#0F6E56"),
-        ("4", "SNS 장기 유지율 하락이 소비 급락을 예고 — r = 0.59",
-         "SNS 장기 유지율(6M)과 소비 유지율의 상관계수는 **0.59**입니다. "
-         "Type D의 SNS 장기율 71%, 소비 77%가 동반 하락합니다. "
-         "SNS 콘텐츠의 지속적 생산 지원이 장기 효과의 보조 수단이 됩니다.",
-         "SNS 지속성", "#0F6E56"),
-        ("5", "축제 기간 길이는 효과성과 통계적으로 무관하다",
-         "ANOVA 결과 소비(p=0.22), SNS(p=0.25) 모두 구간 간 차이가 유의하지 않습니다. "
-         "**'기간이 길수록 효과가 크다'는 명제는 데이터로 지지되지 않습니다.** "
-         "기간보다 외지인 유입 전략과 콘텐츠 특성이 효과성의 실질 결정 요인입니다.",
-         "축제 기간", "#BA7517"),
-        ("6", "27개 중 14개(52%)가 효과 미흡 — 평가 체계 전환 필요",
-         "현행 방문자 수 단일 평가로는 이 문제가 보이지 않습니다. "
-         "Type D는 SNS 기준선 미달 12/14개, 소비 유지율 평균 91%입니다. "
-         "**소비 유지율·외지인 비율을 공식 평가 지표에 포함하는 체계 전환이 필요합니다.**",
-         "정책 제언", "#993C1D"),
-    ]
+    # ── 공통 데이터 준비 ──────────────────────────────────
+    ret_with_type = retention_df.merge(
+        score_df[["festival_name", "cluster_label"]], on="festival_name", how="left"
+    )
+    ret_fest = ret_with_type.groupby(["festival_name", "cluster_label"]).agg(
+        sns_long=("sns_long_rate", "mean"),
+        sp_long=("sp_long_rate", "mean"),
+        sp_short=("sp_short_rate", "mean"),
+    ).reset_index()
 
-    for num, title, body, tag, color in INSIGHTS:
-        col_num, col_body = st.columns([1, 11])
-        with col_num:
+    score_df["outsider_group"] = pd.cut(
+        score_df["avg_outsider_ratio"],
+        bins=[0, 40, 60, 75, 100],
+        labels=["~40%", "40~60%", "60~75%", "75%+"],
+    )
+
+    visitor_df["days_group"] = pd.cut(
+        visitor_df["festival_days"],
+        bins=[0, 4, 9, 15, 100],
+        labels=["① 1~4일", "② 5~9일", "③ 10~15일", "④ 16일+"],
+    )
+    vis_merged = visitor_df.merge(
+        score_df[["festival_name", "avg_spend_lift", "avg_buzz_lift", "avg_visitor_lift"]],
+        on="festival_name", how="left",
+    )
+
+    TYPE_ORDER = [
+        "Type A — 전방위 우수형",
+        "Type B — 경제·방문 균형형",
+        "Type C — SNS 주도형",
+        "Type D — 효과 미흡형",
+    ]
+    TYPE_SHORT_LIST = ["Type A", "Type B", "Type C", "Type D"]
+    TYPE_COLOR_LIST = ["#534AB7", "#185FA5", "#0F6E56", "#993C1D"]
+
+    def ins_header(num, title, tag, color, body):
+        col_n, col_b = st.columns([1, 11])
+        with col_n:
             st.markdown(
                 f'<div style="width:32px;height:32px;border-radius:50%;background:{color};'
                 f'color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;'
                 f'justify-content:center;margin-top:4px">{num}</div>',
                 unsafe_allow_html=True,
             )
-        with col_body:
+        with col_b:
             st.markdown(
                 f'<span style="background:{color}18;color:{color};padding:2px 8px;'
                 f'border-radius:4px;font-size:11px;font-weight:500">{tag}</span>',
@@ -792,8 +794,448 @@ elif tab_sel == "💡 인사이트":
             )
             st.markdown(f"**{title}**")
             st.markdown(body)
-        st.divider()
 
+    # ══════════════════════════════════════════
+    # 인사이트 1 — 방문자 유입 vs 소비 상관 산점도
+    # ══════════════════════════════════════════
+    ins_header("1", "방문자 유입이 소비를 만든다 — r = 0.84의 강한 상관",
+               "방문·소비", "#534AB7",
+               "방문자 증폭률과 소비 증폭률의 상관계수는 **r = 0.84**로 모든 지표 중 가장 높습니다. "
+               "SNS 증폭과 소비의 상관(r=0.71)보다 높아, 온라인 마케팅보다 실제 방문 유도가 더 중요합니다.")
+
+    fig1 = go.Figure()
+    for lbl, clr in zip(TYPE_ORDER, TYPE_COLOR_LIST):
+        sub = score_df[score_df["cluster_label"] == lbl]
+        fig1.add_trace(go.Scatter(
+            x=sub["avg_visitor_lift"], y=sub["avg_spend_lift"],
+            mode="markers+text", name=TYPE_SHORT[lbl],
+            marker=dict(color=clr, size=11, opacity=0.85,
+                        line=dict(color="white", width=1)),
+            text=sub["festival_name"], textposition="top center",
+            textfont=dict(size=9),
+        ))
+    # 추세선
+    x_all = score_df["avg_visitor_lift"].values
+    y_all = score_df["avg_spend_lift"].values
+    m, b = np.polyfit(x_all, y_all, 1)
+    x_line = np.linspace(x_all.min(), x_all.max(), 50)
+    fig1.add_trace(go.Scatter(
+        x=x_line, y=m * x_line + b,
+        mode="lines", name=f"추세선 (r=0.84)",
+        line=dict(color="gray", width=1.5, dash="dot"),
+        showlegend=True,
+    ))
+    fig1.update_layout(
+        height=400,
+        xaxis=dict(title="방문자 증폭률 (%)", gridcolor="rgba(200,200,200,0.3)"),
+        yaxis=dict(title="소비 증폭률 (%)",   gridcolor="rgba(200,200,200,0.3)"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", y=1.08, x=0),
+        margin=dict(t=20, b=30),
+    )
+    st.plotly_chart(fig1, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — 방문자·소비 증폭률 산출'):
+        st.code("""\
+-- 축제별 3개년 평균 방문자·소비 증폭률 (상관 분석 기반 지표)
+WITH visitor_ts_base AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN 전체방문자수 END)  AS before_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN 전체방문자수 END)  AS festival_avg
+    FROM fact_visitor_ts
+    GROUP BY festival_name, festival_year
+),
+spend_base AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN spending_million END) AS before_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN spending_million END) AS festival_avg
+    FROM fact_spending
+    GROUP BY festival_name, festival_year
+)
+SELECT
+    v.festival_name,
+    ROUND(AVG(v.festival_avg / NULLIF(v.before_avg,0) * 100), 1) AS avg_visitor_lift,
+    ROUND(AVG(s.festival_avg / NULLIF(s.before_avg,0) * 100), 1) AS avg_spend_lift
+FROM visitor_ts_base v
+JOIN spend_base s USING (festival_name, festival_year)
+GROUP BY v.festival_name
+ORDER BY avg_visitor_lift DESC;
+-- → r=0.84: 방문자 증폭이 클수록 소비 증폭도 크다
+""", language='sql')
+    st.divider()
+
+    # ══════════════════════════════════════════
+    # 인사이트 2 — 외지인 비율 구간별 SNS·소비 막대
+    # ══════════════════════════════════════════
+    ins_header("2", "외지인 비율 75% 이상이 분기점 — SNS 효과도 1.5배",
+               "외지인·SNS", "#185FA5",
+               "외지인 비율 **75% 이상** 구간의 SNS 증폭률은 155.8%로 40% 미만(103.5%)의 1.5배입니다. "
+               "외지인이 자발적 콘텐츠 생산자가 되어 SNS 파급력을 높이기 때문입니다.")
+
+    g2 = score_df.groupby("outsider_group", observed=True)[
+        ["avg_buzz_lift", "avg_spend_lift", "composite_score"]
+    ].mean().round(1).reset_index()
+    groups2 = g2["outsider_group"].astype(str).tolist()
+    bar_colors2 = ["#D0CDE8", "#A8C4E0", "#6A9CC8", "#185FA5"]
+
+    fig2 = make_subplots(rows=1, cols=2,
+                         subplot_titles=["외지인 비율 구간별 SNS 증폭률 (%)",
+                                         "외지인 비율 구간별 종합 효과성 점수"],
+                         horizontal_spacing=0.12)
+    fig2.add_trace(go.Bar(
+        x=groups2, y=g2["avg_buzz_lift"],
+        marker_color=bar_colors2,
+        text=g2["avg_buzz_lift"].astype(str) + "%",
+        textposition="outside", showlegend=False,
+    ), row=1, col=1)
+    fig2.add_hline(y=100, line_dash="dot", line_color="gray",
+                   opacity=0.5, row=1, col=1)
+    fig2.add_trace(go.Bar(
+        x=groups2, y=g2["composite_score"],
+        marker_color=bar_colors2,
+        text=g2["composite_score"].astype(str) + "점",
+        textposition="outside", showlegend=False,
+    ), row=1, col=2)
+    # 75%+ 강조 박스
+    for col_n in [1, 2]:
+        fig2.add_vrect(x0=2.5, x1=3.5, fillcolor="#185FA520",
+                       layer="below", line_width=0, row=1, col=col_n)
+    fig2.update_layout(
+        height=340, plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(t=40, b=20),
+    )
+    fig2.update_yaxes(gridcolor="rgba(200,200,200,0.3)")
+    st.plotly_chart(fig2, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — 외지인 비율 구간별 SNS·효과성 집계'):
+        st.code("""\
+-- 외지인 비율을 4개 구간으로 나눠 SNS 증폭률·종합 점수 비교
+SELECT
+    CASE
+        WHEN outsider_ratio < 40  THEN '~40%'
+        WHEN outsider_ratio < 60  THEN '40~60%'
+        WHEN outsider_ratio < 75  THEN '60~75%'
+        ELSE                           '75%+'
+    END AS outsider_group,
+    COUNT(*)                                               AS n,
+    ROUND(AVG(avg_buzz_lift),     1)                      AS avg_sns_lift,
+    ROUND(AVG(avg_spend_lift),    1)                      AS avg_spend_lift,
+    ROUND(AVG(composite_score),   1)                      AS avg_score
+FROM (
+    -- 축제별 3개년 평균 외지인 비율
+    SELECT festival_name,
+           AVG(CAST(외지인방문자수 AS FLOAT) / NULLIF(전체방문자수,0) * 100) AS outsider_ratio
+    FROM fact_visitor
+    GROUP BY festival_name
+) v
+JOIN fact_composite_score s USING (festival_name)
+GROUP BY outsider_group
+ORDER BY outsider_group;
+-- → 75%+ 구간이 SNS 155.8% — 다른 구간 대비 1.5배
+""", language='sql')
+    st.divider()
+
+    # ══════════════════════════════════════════
+    # 인사이트 3 — 유형별 소비 증폭·유지율 그룹 막대
+    # ══════════════════════════════════════════
+    ins_header("3", "소비 유지율이 진짜 지역 경제 활성화의 지표다",
+               "소비 지속성", "#0F6E56",
+               "Type B의 소비 유지율 **114.7%**로 기준선 이상. 반면 Type D는 **90.9%**로 오히려 감소합니다. "
+               "방문자 수가 많아도 유지율이 낮으면 소비 유출(leakage)이 발생하는 신호입니다.")
+
+    g3 = score_df.groupby("cluster_label").agg(
+        avg_spend_lift=("avg_spend_lift", "mean"),
+        avg_retention_rate=("avg_retention_rate", "mean"),
+    ).reindex(TYPE_ORDER).round(1).reset_index()
+
+    fig3 = go.Figure()
+    fig3.add_trace(go.Bar(
+        name="소비 증폭률 (축제 기간)",
+        x=[TYPE_SHORT[t] for t in g3["cluster_label"]],
+        y=g3["avg_spend_lift"],
+        marker_color=TYPE_COLOR_LIST,
+        opacity=0.55,
+        text=g3["avg_spend_lift"].round(1).astype(str) + "%",
+        textposition="inside", textfont=dict(color="white", size=11),
+    ))
+    fig3.add_trace(go.Bar(
+        name="소비 유지율 (After 평균)",
+        x=[TYPE_SHORT[t] for t in g3["cluster_label"]],
+        y=g3["avg_retention_rate"],
+        marker_color=TYPE_COLOR_LIST,
+        opacity=1.0,
+        text=g3["avg_retention_rate"].round(1).astype(str) + "%",
+        textposition="inside", textfont=dict(color="white", size=11),
+    ))
+    fig3.add_hline(y=100, line_dash="dot", line_color="gray", opacity=0.5,
+                   annotation_text="기준선 100%", annotation_position="right")
+    fig3.update_layout(
+        barmode="group",
+        height=360,
+        yaxis=dict(title="BEFORE 기준 대비 비율 (%)", range=[70, 165],
+                   gridcolor="rgba(200,200,200,0.3)"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", y=1.08),
+        margin=dict(t=20, b=20),
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — 유형별 소비 증폭률 vs 유지율'):
+        st.code("""\
+-- 유형별 소비 증폭률(축제 기간)과 유지율(사후) 비교
+WITH yearly AS (
+    SELECT festival_name, festival_year,
+           AVG(CASE WHEN period LIKE 'BEFORE%' THEN spending_million END) AS before_avg,
+           AVG(CASE WHEN period = 'FESTIVAL'   THEN spending_million END) AS festival_avg,
+           AVG(CASE WHEN period LIKE 'AFTER%'  THEN spending_million END) AS after_avg
+    FROM fact_spending
+    GROUP BY festival_name, festival_year
+),
+fest_score AS (
+    SELECT festival_name, cluster_label,
+           ROUND(AVG(festival_avg / NULLIF(before_avg,0) * 100), 1) AS avg_spend_lift,
+           ROUND(AVG(after_avg    / NULLIF(before_avg,0) * 100), 1) AS avg_retention_rate
+    FROM yearly GROUP BY festival_name
+)
+SELECT
+    s.cluster_label,
+    ROUND(AVG(f.avg_spend_lift),     1) AS avg_spend_lift,
+    ROUND(AVG(f.avg_retention_rate), 1) AS avg_retention_rate
+FROM fest_score f
+JOIN fact_composite_score s USING (festival_name)
+GROUP BY s.cluster_label
+ORDER BY avg_retention_rate DESC;
+-- → Type B 유지율 114.7% vs Type D 90.9%
+""", language='sql')
+    st.divider()
+
+    # ══════════════════════════════════════════
+    # 인사이트 4 — SNS 장기 vs 소비 장기 산점도
+    # ══════════════════════════════════════════
+    ins_header("4", "SNS 장기 유지율 하락이 소비 급락을 예고 — r = 0.59",
+               "SNS 지속성", "#0F6E56",
+               "SNS 6개월 유지율과 소비 6개월 유지율의 상관계수 **r = 0.59**. "
+               "Type D의 SNS 장기율 84.9%, 소비 87.4%가 동반 하락합니다. "
+               "SNS 콘텐츠 지속 생산 지원이 장기 경제 효과의 보조 수단입니다.")
+
+    fig4 = go.Figure()
+    for lbl, clr in zip(TYPE_ORDER, TYPE_COLOR_LIST):
+        sub = ret_fest[ret_fest["cluster_label"] == lbl]
+        fig4.add_trace(go.Scatter(
+            x=sub["sns_long"], y=sub["sp_long"],
+            mode="markers+text", name=TYPE_SHORT[lbl],
+            marker=dict(color=clr, size=10, opacity=0.85,
+                        line=dict(color="white", width=1)),
+            text=sub["festival_name"], textposition="top center",
+            textfont=dict(size=9),
+        ))
+    # 추세선
+    x4 = ret_fest["sns_long"].values
+    y4 = ret_fest["sp_long"].values
+    m4, b4 = np.polyfit(x4, y4, 1)
+    x4_line = np.linspace(x4.min(), x4.max(), 50)
+    fig4.add_trace(go.Scatter(
+        x=x4_line, y=m4 * x4_line + b4,
+        mode="lines", name="추세선 (r=0.59)",
+        line=dict(color="gray", width=1.5, dash="dot"),
+    ))
+    fig4.add_hline(y=100, line_dash="dot", line_color="gray", opacity=0.4)
+    fig4.add_vline(x=100, line_dash="dot", line_color="gray", opacity=0.4)
+    fig4.update_layout(
+        height=400,
+        xaxis=dict(title="SNS 6개월 유지율 (%)", gridcolor="rgba(200,200,200,0.3)"),
+        yaxis=dict(title="소비 6개월 유지율 (%)", gridcolor="rgba(200,200,200,0.3)"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", y=1.08, x=0),
+        margin=dict(t=20, b=30),
+    )
+    st.plotly_chart(fig4, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — SNS·소비 6개월 유지율 (장기 지속성)'):
+        st.code("""\
+-- AFTER_6M 기준 SNS·소비 장기 유지율 산출 (fact_retention_v2 기반)
+SELECT
+    r.festival_name,
+    f.cluster_label,
+    ROUND(AVG(r.sns_long_rate), 1) AS sns_6m_rate,   -- SNS 6개월 유지율
+    ROUND(AVG(r.sp_long_rate),  1) AS spend_6m_rate  -- 소비 6개월 유지율
+FROM fact_retention_v2 r
+JOIN fact_composite_score f USING (festival_name)
+GROUP BY r.festival_name, f.cluster_label
+ORDER BY sns_6m_rate DESC;
+-- fact_retention_v2 생성 핵심 로직:
+-- short_avg = AVG(AFTER_1M ~ AFTER_3M)
+-- long_avg  = AVG(AFTER_6M)            ← 여기서 사용
+-- 상관계수 r=0.59: SNS 장기율이 낮을수록 소비 장기율도 낮다
+""", language='sql')
+    st.divider()
+
+    # ══════════════════════════════════════════
+    # 인사이트 5 — 축제 기간 구간별 꺾은선+막대
+    # ══════════════════════════════════════════
+    ins_header("5", "축제 기간 길이는 효과성과 통계적으로 무관하다",
+               "축제 기간", "#BA7517",
+               "ANOVA 결과 소비(p=0.22), SNS(p=0.25) 모두 구간 간 차이가 유의하지 않습니다. "
+               "③ 장기(10~15일) 수치가 높아 보이지만 곡성세계장미축제 단독 효과가 크게 작용합니다. "
+               "**기간보다 외지인 유입 전략과 콘텐츠 특성이 효과성의 실질 결정 요인입니다.**")
+
+    g5 = vis_merged.groupby("days_group", observed=True)[
+        ["avg_spend_lift", "avg_buzz_lift", "avg_visitor_lift"]
+    ].mean().round(1).reset_index()
+    g5_labels = g5["days_group"].astype(str).tolist()
+    bar_colors5 = ["#D4C9A8", "#A8C4E0", "#0F6E56", "#D4C9A8"]
+
+    fig5 = make_subplots(specs=[[{"secondary_y": True}]])
+    fig5.add_trace(go.Bar(
+        x=g5_labels, y=g5["avg_spend_lift"],
+        name="소비 증폭률",
+        marker_color=bar_colors5,
+        text=g5["avg_spend_lift"].astype(str) + "%",
+        textposition="outside",
+    ), secondary_y=False)
+    fig5.add_trace(go.Scatter(
+        x=g5_labels, y=g5["avg_buzz_lift"],
+        name="SNS 증폭률",
+        mode="lines+markers",
+        line=dict(color="#185FA5", width=2, dash="dash"),
+        marker=dict(size=8),
+    ), secondary_y=True)
+    fig5.add_trace(go.Scatter(
+        x=g5_labels, y=g5["avg_visitor_lift"],
+        name="방문자 증폭률",
+        mode="lines+markers",
+        line=dict(color="#993C1D", width=2),
+        marker=dict(size=8),
+    ), secondary_y=True)
+    # p-value 주석
+    fig5.add_annotation(
+        text="ANOVA: 소비 p=0.22 / SNS p=0.25<br>→ 통계적으로 유의하지 않음",
+        xref="paper", yref="paper", x=0.98, y=0.98,
+        showarrow=False, align="right",
+        font=dict(size=10, color="#BA7517"),
+        bgcolor="rgba(250,238,218,0.85)",
+        bordercolor="#BA7517", borderwidth=0.5,
+    )
+    fig5.update_layout(
+        height=380, plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", y=1.08),
+        margin=dict(t=20, b=20),
+    )
+    fig5.update_yaxes(title_text="소비 증폭률 (%)",   secondary_y=False,
+                      gridcolor="rgba(200,200,200,0.3)", range=[90, 145])
+    fig5.update_yaxes(title_text="SNS·방문 증폭률 (%)", secondary_y=True, range=[90, 145])
+    st.plotly_chart(fig5, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — 축제 기간 구간별 효과성'):
+        st.code("""\
+-- festival_days를 4개 구간으로 나눠 소비·SNS·방문자 증폭률 비교
+WITH before_avg AS (
+    SELECT sp.festival_name, sp.festival_year,
+           AVG(sp.spending_million) AS spend_base,
+           AVG(sn.search_volume)    AS sns_base,
+           AVG(vt.전체방문자수)      AS visit_base
+    FROM fact_spending   sp
+    JOIN fact_sns        sn ON sp.festival_name=sn.festival_name
+                            AND sp.festival_year=sn.festival_year
+                            AND sp.period=sn.period
+    JOIN fact_visitor_ts vt ON sp.festival_name=vt.festival_name
+                            AND sp.festival_year=vt.festival_year
+                            AND sp.period=vt.period
+    WHERE sp.period LIKE 'BEFORE%'
+    GROUP BY sp.festival_name, sp.festival_year
+)
+SELECT
+    CASE
+        WHEN v.festival_days <= 4  THEN '① 단기 (1~4일)'
+        WHEN v.festival_days <= 9  THEN '② 중기 (5~9일)'
+        WHEN v.festival_days <= 15 THEN '③ 장기 (10~15일)'
+        ELSE                            '④ 초장기 (16일+)'
+    END AS days_group,
+    COUNT(*)                                                            AS n,
+    ROUND(AVG((fv.spend_fest-b.spend_base)/NULLIF(b.spend_base,0)*100),1) AS avg_spend_lift,
+    ROUND(AVG((fv.sns_fest  -b.sns_base)  /NULLIF(b.sns_base,0)*100),  1) AS avg_sns_lift
+FROM fact_visitor v
+JOIN before_avg b   ON v.festival_name=b.festival_name AND v.festival_year=b.festival_year
+JOIN festival_val fv ON v.festival_name=fv.festival_name AND v.festival_year=fv.festival_year
+GROUP BY days_group;
+-- ANOVA: 소비 F=1.506 p=0.220 / SNS F=1.408 p=0.247 → 모두 비유의
+""", language='sql')
+    st.divider()
+
+    # ══════════════════════════════════════════
+    # 인사이트 6 — 유형별 현황 스택 막대 + 점수 꺾은선
+    # ══════════════════════════════════════════
+    ins_header("6", "27개 중 14개(52%)가 효과 미흡 — 평가 체계 전환 필요",
+               "정책 제언", "#993C1D",
+               "현행 방문자 수 단일 평가로는 이 문제가 보이지 않습니다. "
+               "Type D는 소비 유지율 평균 **90.9%**, SNS 기준선 미달 축제 6/14개입니다. "
+               "**소비 유지율·외지인 비율을 공식 평가 지표에 포함하는 체계 전환이 필요합니다.**")
+
+    g6 = score_df.groupby("cluster_label").agg(
+        n=("festival_name", "count"),
+        avg_retention=("avg_retention_rate", "mean"),
+        avg_score=("composite_score", "mean"),
+    ).reindex(TYPE_ORDER).round(1).reset_index()
+    type_labels6 = [TYPE_SHORT[t] for t in g6["cluster_label"]]
+
+    fig6 = make_subplots(rows=1, cols=2,
+                         subplot_titles=["유형별 축제 수 및 소비 유지율",
+                                         "유형별 평균 종합 효과성 점수"],
+                         horizontal_spacing=0.14)
+    # 왼쪽: 축제 수 막대 + 소비유지율 꺾은선
+    fig6.add_trace(go.Bar(
+        x=type_labels6, y=g6["n"],
+        marker_color=TYPE_COLOR_LIST, opacity=0.7,
+        name="축제 수",
+        text=g6["n"].astype(str) + "개", textposition="inside",
+        textfont=dict(color="white", size=12),
+    ), row=1, col=1)
+    # 오른쪽: 종합 점수 막대
+    fig6.add_trace(go.Bar(
+        x=type_labels6, y=g6["avg_score"],
+        marker_color=TYPE_COLOR_LIST,
+        name="종합 점수",
+        text=g6["avg_score"].astype(str) + "점",
+        textposition="outside",
+        showlegend=False,
+    ), row=1, col=2)
+    # 소비 유지율 꺾은선 (오른쪽 y축 역할로 annotation 사용)
+    for i, (lbl, ret_val) in enumerate(zip(type_labels6, g6["avg_retention"])):
+        fig6.add_annotation(
+            x=lbl, y=g6["n"].iloc[i] + 0.4,
+            text=f"유지율<br>{ret_val:.0f}%",
+            showarrow=False,
+            font=dict(size=10, color=TYPE_COLOR_LIST[i]),
+            row=1, col=1,
+        )
+    # Type D 강조
+    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="#99321D15",
+                   layer="below", line_width=0, row=1, col=1)
+    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="#99321D15",
+                   layer="below", line_width=0, row=1, col=2)
+    fig6.update_layout(
+        height=360, plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=False, margin=dict(t=40, b=20),
+    )
+    fig6.update_yaxes(gridcolor="rgba(200,200,200,0.3)")
+    fig6.update_yaxes(title_text="축제 수 (개)", row=1, col=1)
+    fig6.update_yaxes(title_text="종합 점수", row=1, col=2)
+    st.plotly_chart(fig6, use_container_width=True)
+    with st.expander('🗄️ 관련 SQL — 유형별 축제 수·소비 유지율·종합 점수'):
+        st.code("""\
+-- 유형별 현황 집계 — 효과 미흡 규모와 점수 격차 확인
+SELECT
+    cluster_label,
+    COUNT(*)                                    AS festival_count,
+    ROUND(AVG(composite_score),      1)         AS avg_score,
+    ROUND(AVG(avg_retention_rate),   1)         AS avg_retention_rate,
+    SUM(CASE WHEN avg_buzz_lift < 100 THEN 1
+             ELSE 0 END)                        AS sns_below_baseline,
+    ROUND(AVG(avg_outsider_ratio),   1)         AS avg_outsider_ratio
+FROM fact_composite_score
+GROUP BY cluster_label
+ORDER BY avg_score DESC;
+-- → Type D: 14개(52%), 유지율 90.9%, SNS 미달 6개
+-- 방문자 수 단일 지표로는 이 차이가 보이지 않음
+""", language='sql')
+    st.divider()
+
+    # ── 유형별 전략 방향 ──────────────────────────────────
     st.markdown("## 유형별 정책 전략 방향")
     STRATEGIES = [
         ("Type A — 전방위 우수형",   "#534AB7", "#EEEDFE", 1,  "86.9점",
@@ -838,6 +1280,7 @@ elif tab_sel == "💡 인사이트":
                 f'{bullet_html}</div>',
                 unsafe_allow_html=True,
             )
+
 
 
 # ════════════════════════════════════════════════════════

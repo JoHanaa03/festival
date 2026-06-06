@@ -897,7 +897,7 @@ ORDER BY avg_visitor_lift DESC;
     ), row=1, col=2)
     # 75%+ 강조 박스
     for col_n in [1, 2]:
-        fig2.add_vrect(x0=2.5, x1=3.5, fillcolor="#185FA520",
+        fig2.add_vrect(x0=2.5, x1=3.5, fillcolor="rgba(24,95,165,0.12)",
                        layer="below", line_width=0, row=1, col=col_n)
     fig2.update_layout(
         height=340, plot_bgcolor="rgba(0,0,0,0)",
@@ -1204,9 +1204,9 @@ GROUP BY days_group;
             row=1, col=1,
         )
     # Type D 강조
-    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="#99321D15",
+    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="rgba(153,50,29,0.08)",
                    layer="below", line_width=0, row=1, col=1)
-    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="#99321D15",
+    fig6.add_vrect(x0=2.5, x1=3.5, fillcolor="rgba(153,50,29,0.08)",
                    layer="below", line_width=0, row=1, col=2)
     fig6.update_layout(
         height=360, plot_bgcolor="rgba(0,0,0,0)",
